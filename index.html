@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>CGM Snake JS</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+    <div id="games_container">
+        <div id="snake_container">
+            <div id="snake_score">Score: 0</div>
+            <div id="snake_upper_bounds" data-collision="0"></div>
+            <div id="snake_lower_bounds" data-collision="0"></div>
+            <div id="snake_right_bounds" data-collision="0"></div>
+            <div id="snake_left_bounds" data-collision="0"></div>
+            <div id="player_block" class="snake_player">
+            </div>
+        </div>
+        <div id="game_over_container" class="hidden">
+            <h1 id="game-over-header">GAME OVER</h1>
+            <div class="game-over-buttons row">
+                <div class="col-sm-2 col-xs-2 col-md-2 col-lg-2 col-xl-2"></div>
+                <input id="play_again_button" type="button" class="game_over_button col-sm-4 col-xs-4 col-md-4 col-lg-4 col-xl-4" value="Play">
+                <div class="col-sm-1 col-xs-1 col-md-1 col-lg-1 col-xl-1"></div>
+                <input id="game_exit_button" type="button" class="game_over_button col-sm-4 col-xs-3 col-md-3 col-lg-3 col-xl-3" value="Exit">
+                <div class="col-sm-2 col-xs-2 col-md-2 col-lg-2 col-xl-2"></div>                        
+            </div>
+        </div>
+    </div>
+</body>
+<script  src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="./scripts/cgm_snake.js">
+</html>
