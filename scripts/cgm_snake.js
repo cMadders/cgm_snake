@@ -1,3 +1,55 @@
+    // Position buttons on load
+    $(window).on('load', function(){
+        $('#banner').removeClass('hidden');
+        $('#load_text_container').addClass('hidden');
+        currentFixedUpdate = function(){};
+    });
+    
+    $('#game_button').on('click',function(){
+        $('#game-start-modal').modal('toggle');
+    });
+    
+    $('.play-game-button').on('click',function(){
+        $('#games_container').removeClass('hidden');
+        if($(this).data('target') === 'snake'){
+            $('.canvas').addClass('hidden');
+            $('#banner').addClass('hidden');
+            $('#snake_container').removeClass('hidden');
+            $('#game-start-modal').modal('toggle');
+            currentFixedUpdate = snakeFixedUpdate;
+            createFood();
+        }
+    });
+    
+    $('#game_exit_button').on('click',function(){
+       $('#games_container').addClass('hidden');
+       currentFixedUpdate = function(){};
+       $('#banner').removeClass('hidden');
+       $('#game_over_container').addClass('hidden');
+    });
+
+    $('.arcade-button').on('mousedown',function(){
+        pressArcadeButton($(this), 'down');
+    });
+    
+    $('.arcade-button').on('mouseup',function(){
+        pressArcadeButton($(this), 'up');
+    });
+    
+    $('.arcade-button').on('dragend',function(){
+        pressArcadeButton($(this),'up');
+    });
+    
+    function pressArcadeButton(button, direction){
+        var source = button.attr('src');
+        if(direction === 'up'){
+            var altered = source.replace('_pressed.png','.png');
+        }else{
+            var altered = source.replace('.png','_pressed.png');
+        }
+        button.attr('src',altered);
+    }
+
     // Game Code =======================================
     // 
     // Basic Player Object
@@ -135,9 +187,12 @@
     var basicFoodScore = 250;
     var snakeCollectibles = [];
     var boundingMargin = 10;
+    var BOUNDARY_COLLISION = 0;
 
+
+    
+    // Snake Code Start
     var snakePlayerObj = new PlayerObject($('#player_block'), 0, snakeBaseSpeed);
-    createFood();
     $(document).keydown(function(e) {
         var clone;
         switch(e.which) {
@@ -210,6 +265,8 @@
         var chanceY = Math.floor(Math.random() * $(window).height());
         var food = document.createElement('div');
         food.className = 'snake-food collectible';
+        //food.setAttribute('style','top:' + chanceY + 'px;' + 'right:' + chanceX + 'px');
+        //$('#snake_container').append($(food));
         placeSnakeCollectible(food);
         var foodData = {};
         foodData['score'] = basicFoodScore;
@@ -217,6 +274,7 @@
         foodData['domObj'] = food;
         foodData['timer'] = -1;
         var foodObj = new Collectible(foodData);
+        // Use the get(0) to actually store the object for comparison later
         snakeCollectibles.push(foodObj);
     }
     
@@ -232,19 +290,27 @@
         clone.attr('id','');
         clone.addClass('snake_tail');
         snakeTails.push(clone);
-        $('#snake-container').append(clone);
+        $('#snake_container').append(clone);
     }
     
     function createPowerUp(){
         var chance = Math.floor(Math.random() * 50000);
         if(chance > 49900){
+            window.console.log(speedUpData);
             var speedUpper = new SpeedUp(speedUpData);
+            window.console.log(speedUpper);
+            //var chanceX = Math.floor(Math.random() * $(window).width());
+            //var chanceY = Math.floor(Math.random() * $(window).height());
             var power = document.createElement('div');
             power.className = 'power-up speed-up collectible';
+            //power.setAttribute('style','top:' + chanceY + 'px;' + 'right:' + chanceX + 'px');
             power.innerHTML = 'S';
+            //$('#snake_container').append($(power));
             placeSnakeCollectible(power);
             var powerObj = new SpeedUp(speedUpData);
             powerObj.DOM = power;
+            window.console.log(powerObj);
+            // Use the get(0) to actually store the object for comparison later
             snakeCollectibles.push(powerObj);
         }
     }
@@ -267,9 +333,35 @@
         moveSnake(snakePlayerObj.getSpeed());
         createPowerUp();
     };
-
-    currentFixedUpdate = snakeFixedUpdate;
     
+    var textOneByOneTransition = function (target,text, index, interval){
+        if(!windowFocused)
+            return;
+        if(index == 0)
+            target.html('');
+        // 
+        target.html(text[index++]);
+        setTimeout(function(){
+            textOneByOneTransition(target, text, index, interval);
+        }, interval);
+    };
+    
+    var textAddOneByOneTransition = function (target,text, index, interval, callback){
+        if(index == text.length){
+            callback();
+            return;
+        }
+        if(index == 0)
+            target.html('');
+        // 
+        target.html(target.html() + text[index++]);
+        setTimeout(function(){
+            textAddOneByOneTransition(target, text, index, interval,callback);
+        }, interval);
+    };
+    
+    //currentFixedUpdate = snakeFixedUpdate;
+    //currentFixedUpdate = animateLoadText;
     setInterval(function(){
         currentFixedUpdate()}, 33
     );
@@ -283,13 +375,17 @@
         }
         var position = element.position();
         // Collision detection that checks the entire area where speed will occopy in the next update
-        // Probably can do a more efficient collision detection with determing bounding boxes
+        // Probably can do a more efficient collision detection with determining bounding boxes
         for(var i = 0; i <= bounds;i++){
-            for(var k = 0;k <= snakePlayerObj.getSpeed();k++){
+            for(var k = 1;k <= snakePlayerObj.getSpeed();k++){
                 var possibleElement;
                 if(collisionObj.axis === 'x'){
                     possibleElement = document.elementFromPoint(position.left + i, position.top + k);
-                    if(possibleElement.className.indexOf('collectible') > 0){
+                    if(!possibleElement || $(possibleElement).data('collision') === 0){
+                        snakeGameOver();
+                        currentFixedUpdate = function(){};
+                        return;
+                    }else if(possibleElement.className.indexOf('collectible') > 0){
                         addToScore(collectSnakeItem(possibleElement));
                         if(possibleElement.className.indexOf('snake-food') >= 0){
                             currentTailMax += snakeTailMax;
@@ -299,7 +395,11 @@
                     }
                 }else{
                     possibleElement = document.elementFromPoint(position.left + k, position.top + i);
-                    if(possibleElement.className.indexOf('collectible') > 0){
+                    if(!possibleElement || $(possibleElement).data('collision') === 0){
+                        snakeGameOver();
+                        currentFixedUpdate = function(){};
+                        return;
+                    }else if(possibleElement.className.indexOf('collectible') > 0){
                         addToScore(collectSnakeItem(possibleElement));
                         if(possibleElement.className.indexOf('snake-food') >= 0){
                             currentTailMax += snakeTailMax;
@@ -323,6 +423,7 @@
             }
         }
         snakeCollectibles.splice(removalIndex,1);
+        window.console.log(scoreOut);
         return scoreOut;
     }
     
@@ -340,15 +441,21 @@
     });
     
     function placeSnakeCollectible(elementIn){
-        var xMin = Math.round(styleToNumber('#snake-container', 'margin-left')) + boundingMargin;
-        var xMax = Math.round(styleToNumber('#snake-container', 'width')) - boundingMargin;
-        var yMin = Math.round(styleToNumber('#snake-container', 'margin-top')) + boundingMargin;
-        var yMax = Math.round(styleToNumber('#snake-container', 'height')) - boundingMargin;
+        var xMin = Math.round(styleToNumber('#snake_container', 'margin-left')) + boundingMargin;
+        var xMax = Math.round(styleToNumber('#snake_container', 'width')) - boundingMargin;
+        var yMin = Math.round(styleToNumber('#snake_container', 'margin-top')) + boundingMargin;
+        var yMax = Math.round(styleToNumber('#snake_container', 'height')) - boundingMargin;
         window.console.log('xmin: ' + (xMin + boundingMargin));
         var posx = randomIntFromInterval(xMin, xMax);
         var posy = randomIntFromInterval(yMin, yMax);
+        /*
+        var out = {};
+        out['posX'] = posx;
+        out['posY'] = posy;
+        return out;
+        */
         elementIn.setAttribute('style','top:' + posy + 'px;' + 'left:' + posx + 'px');
-        $('#snake-container').append($(elementIn));
+        $('#snake_container').append($(elementIn));
     }
     
     function reconfigureSnakePlayer(){
@@ -361,8 +468,21 @@
         }
     }
     
+    function snakeGameOver(){
+        $('#game_over_container').removeClass('hidden');
+        $('#play_again_button').on('click',function(){
+            $('#game_over_container').addClass('hidden');
+            snakePlayer.css('transform','translate(50px,50px');
+            $('.snake_tail').remove();
+            snakeSpeed = snakeBaseSpeed;
+            snakeDirection = 0;
+            $('.collectible').remove();
+            currentFixedUpdate = snakeFixedUpdate;
+            createFood();
+        });
+    }
+    
     function randomIntFromInterval(min,max){
-        window.console.log('min: ' + min + ' | max: ' + max);
         var number =  Math.floor(Math.random()*(max-min+1)+min);
         if(number < 0){
             number *= -1;
@@ -377,3 +497,32 @@
         return number;
     }
     
+    // Position an element to that of another
+    function positionOff(victim, example){
+        position = example.position();
+        victim.css('top', position.top + 'px');
+        victim.css('left',position.left + 'px');
+    }
+    
+    // Scales a target element to a percent of another
+    function scaleToElement(victim, example, percentX, percentY){
+        width = styleToNumber(example, 'width');
+        height = styleToNumber(example, 'height');
+        scaleX = parseInt(width) * percentX;
+        scaleY = parseInt(height) * percentY;
+        victim.css('width',scaleX);
+        victim.css('height',scaleY);
+    }
+
+    function moveElementByDimension(element, dimension, direction, modify){
+        originalPosition = styleToNumber(element,modify);
+        originalValue = styleToNumber(element,dimension);
+        window.console.log(originalValue);
+        amount = originalValue * direction;
+        window.console.log(amount);
+        element.css(modify, parseInt(amount) + parseInt(originalPosition) + 'px');
+        window.console.log(element.css('top'));
+    }
+
+    
+    snakePlayer.css('transform','translate(50px,50px');

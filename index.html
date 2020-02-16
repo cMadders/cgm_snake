@@ -1,14 +1,22 @@
-<!DOCTYPE html>
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+?><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>CGM Snake JS</title>
+
+    <!--<link type="text/css" rel="stylesheet" href="http://www.chrismadeen.com/css/main.css">-->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link href="https://vjs.zencdn.net/6.2.0/video-js.css" rel="stylesheet">
+    <link rel="stylesheet" href="./css/snake.css">
+
 </head>
+<script  src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
 <body>
-    <div id="games_container">
-        <div id="snake_container">
+    <div id="games_container" class="hidden">
+        <div id="snake_container" class="hidden">
             <div id="snake_score">Score: 0</div>
             <div id="snake_upper_bounds" data-collision="0"></div>
             <div id="snake_lower_bounds" data-collision="0"></div>
@@ -28,8 +36,34 @@
             </div>
         </div>
     </div>
+    <!--Game Start Modal -->
+    <div class="modal fade" id="game-start-modal" tabindex="-1" role="dialog" aria-labelledby="Game Start Modal" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="game-start-modal-label">Games</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="game-description">
+                    <h4>Snake</h4>
+                    <p>
+                        A traditional snake style game coded in Javascript. Use the left and right arrow keys to navigate your snake.
+                    </p>
+                    <button type="button" class="play-game-button" data-target="snake">Play</button>
+                </div>
+            </div>
+          <div class="modal-footer">
+          </div>
+        </div>
+      </div>
+    </div>
 </body>
-<script  src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
 <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-<script src="./scripts/cgm_snake.js">
+<script type="text/javascript" src="./scripts/cgm_snake.js"></script>
+<script>
+    $('#game-start-modal').modal('toggle');
+</script>
 </html>
